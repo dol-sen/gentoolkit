@@ -238,7 +238,7 @@ def format_upstream(upstream):
 
         updocs = _format_upstream_docs(up.docs)
         for updoc in updocs:
-            result.append(format_line(updoc, "Docs:       ", " " * 13))
+            result.append(format_line(updoc, "Docs:        ", " " * 13))
 
         for upbug in up.bugtrackers:
             result.append(format_line(upbug, "Bugs-to:     ", " " * 13))
