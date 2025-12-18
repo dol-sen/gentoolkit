@@ -25,11 +25,6 @@ try:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
         print()
         sys.exit(1)
-
-    signal.signal(signal.SIGINT, exithandler)
-    signal.signal(signal.SIGTERM, exithandler)
-    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
-
 except KeyboardInterrupt:
     print()
     sys.exit(1)
@@ -38,6 +33,10 @@ except KeyboardInterrupt:
 from gentoolkit.eclean.cli import main
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, exithandler)
+    signal.signal(signal.SIGTERM, exithandler)
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
     try:
         main()
     except KeyboardInterrupt:

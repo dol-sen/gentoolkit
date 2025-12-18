@@ -20,10 +20,6 @@ try:
         print()
         sys.exit(1)
 
-    signal.signal(signal.SIGINT, exithandler)
-    signal.signal(signal.SIGTERM, exithandler)
-    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
-
 except KeyboardInterrupt:
     print()
     sys.exit(1)
@@ -38,6 +34,10 @@ def formatwarning(message, category, filename, llineno, line=None):
 
 
 if __name__ == "__main__":
+    signal.signal(signal.SIGINT, exithandler)
+    signal.signal(signal.SIGTERM, exithandler)
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
     if '--debug' not in sys.argv and not bool(os.getenv('DEBUG', False)):
         warnings.formatwarning = formatwarning
 
