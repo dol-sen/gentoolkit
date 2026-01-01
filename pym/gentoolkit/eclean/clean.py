@@ -65,7 +65,7 @@ class CleanUp:
 
         #  run 'emaint --fix' here
         if clean_size:
-            file = os.path.join(portage.settings["PKGDIR"], "Packages")
+            file = os.path.join(pkgdir, "Packages")
             size1 = os.stat(file).st_size
             TaskHandler(show_progress_bar=self.quiet).run_tasks(
                 [binhost.BinhostHandler], "fix"
