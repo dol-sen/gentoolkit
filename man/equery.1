@@ -57,7 +57,7 @@ same file it should be reported. (see
 .B BUGS
 below)
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-f, \-\-full\-regex
 .br
@@ -71,7 +71,7 @@ Stop when the first match is found. This is generally a safe optimization when s
 .br
 Do not print the version.
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery belongs \-\-early\-out /usr/bin/euse
@@ -91,7 +91,7 @@ to reinstall or update any package that installed a file matching a regular expr
 .BI "check (k) [OPTIONS] " "PKG"
 Check timestamps and MD5 sums for files owned by \fIPKG\fP, where \fIPKG\fP is an installed package.
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-f, \-\-full\-regex
 .br
@@ -101,7 +101,7 @@ The supplied query is a regular expression.
 .br
 Only display packages which don't pass all checks.
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery check \-\-only\-failures '*'
@@ -119,7 +119,7 @@ Verify every installed package in the \fBdev\-python\fP category, and Python its
 .BI "depends (d) [OPTIONS] " "PKG"
 List all packages that depend on \fIPKG\fP.
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-a, \-\-all\-packages
 .br
@@ -137,7 +137,7 @@ Customize the output format of the matched packages using the template string \f
 .br
 Limit the indirect dependency tree to a depth of \fINUM\fP. \fB\-\-depth=0\fP is equivalent to not using \fB\-\-indirect\fP.
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery depends \-\-indirect xulrunner
@@ -150,7 +150,7 @@ Figure out why a package got installed on your system.
 Display a direct dependency graph for every matching version of \fIPKG\fP. A dependency graph is an
 indented tree showing the relationship between packages and their dependencies.
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-A, \-\-no\-atom
 .br
@@ -171,7 +171,7 @@ in narrow terminals.
 Limit the dependency graph to a depth of \fINUM\fP. \fB\-\-depth=0\fP means no
 maximum depth. Default depth is set to 1.
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery depgraph \-\-depth=0 portage
@@ -183,7 +183,7 @@ View a full tree of all direct and indirect compile\-time, run\-time, and post\-
 .BI "files (f) [OPTIONS] " "PKG"
 List files and directories installed by \fIPKG\fP.
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-m, \-\-md5sum
 .br
@@ -211,7 +211,7 @@ A comma\-separated list (no spaces); choose from:
 .br
 .B dir, obj, sym, dev, path, conf, cmd, doc, man, info
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery files \-\-tree vlc
@@ -231,7 +231,7 @@ List all installed packages that have a given \fIKEY\fP match.
 
 \fBNote\fP: \fBKEY\fP is case sensitive. Also \fBhas\fP does not currently have the ability to intelligently compare values depending on the type of information being looked up.  It performs a simple string match. It can only list which packages have the matching \fBVALUE\fP as given on the command line. It is a general purpose lookup for most information available via portage's dbapi.aux_get() function.  Warning: the quality of the results printed is dependant on the quality of the search (given the limited comparison method) and the recorded data available in the vardb. (See \fIEXAMPLES\fP)
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-I, \-\-exclude\-installed
 .br
@@ -249,11 +249,11 @@ Include all packages from the Portage tree in the search path. Use this option t
 .br
 Customize the output format of the matched packages using the template string \fITMPL\fP. See the \fB\-\-format\fP option for \fBlist\fP below for a description of the \fITMPL\fP argument.
 .P
-.I R "OUTPUT" ":"
+.IR "OUTPUT" ":"
 .HP
 (See \fIOUTPUT\fP for \fBlist\fP below)
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery has SLOT 2.4
@@ -279,7 +279,7 @@ List all installed packages that have a given \fIUSE\fP flag.
 
 \fBNote\fP: \fBhasuse\fP does not currently have the ability to display if packages are built with the given USE flag or not. It can only list which packages have the flag as an option. (See \fIEXAMPLES\fP)
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-I, \-\-exclude\-installed
 .br
@@ -297,11 +297,11 @@ Include all packages from the Portage tree in the search path. Use this option t
 .br
 Customize the output format of the matched packages using the template string \fITMPL\fP. See the \fB\-\-format\fP option for \fBlist\fP below for a description of the \fITMPL\fP argument.
 .P
-.I R "OUTPUT" ":"
+.IR "OUTPUT" ":"
 .HP
 (See \fIOUTPUT\fP for \fBlist\fP below)
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery hasuse \-pI perl
@@ -319,7 +319,7 @@ This Bash one\-liner uses \fBhasuse\fP to find a list of packages that have a ce
 .BI "keywords (y) [OPTIONS] " "PKG"
 Display keywords for specified \fIPKG\fP or for \fIPKG\fP that is in pwd.
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-h, \-\-help
 .br
@@ -361,7 +361,7 @@ Display prefix keywords in output. (default: False)
 .br
 Treat slots as irrelevant during detection of redundant packages. (default: False)
 .P
-.I R "OUTPUT" ":"
+.IR "OUTPUT" ":"
 
 .EX
 Keywords for sys-apps/coreutils:
@@ -381,7 +381,7 @@ Keywords for sys-apps/coreutils:
   9999    | o o o o o o o o o o o o o o o | 8 o   | gentoo
 .EE
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery keywords coreutils
@@ -393,7 +393,7 @@ Show the keywording status of the sys-apps/coreutils package on Gentoo-supported
 .BI "list (l) [OPTIONS] " "PKG"
 List installed versions of \fIPKG\fP or all packages matching the query pattern.
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-d, \-\-duplicates
 .br
@@ -453,7 +453,7 @@ text as desired. Similar to bash variables, curly braces can be used to
 disambiguate the variable names from the enclosing text.
 .RE
 .P
-.I R "OUTPUT" ":"
+.IR "OUTPUT" ":"
 
 .EX
 $ equery list binutils
@@ -483,7 +483,7 @@ The fourth field, after the colon, is the package's slot. \fB0\fP is the default
 \fBNote:\fP Additionally, when using \-\-quiet, if no matches are found, instead of printing an error, the equery list module will return with an exit value of 3.
 
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery list '*'
@@ -537,7 +537,7 @@ Display metadata about \fIPKG\fP.
 https://devmanual.gentoo.org/ebuild-writing/misc-files/metadata/index.html
 .EE
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-d, \-\-description
 .br
@@ -569,7 +569,7 @@ Show information about the package's upstream project, including the author's em
 .br
 Dump the plain XML file to the screen.
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery meta gnucash
@@ -593,7 +593,7 @@ Extract the maintainers's email address to let them know they're doing a great j
 .BI "size (s) [OPTIONS] " "PKG"
 Print total size of files contained in a given \fIPKG\fP.
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-b, \-\-bytes
 .br
@@ -603,7 +603,7 @@ Report package size in bytes.
 .br
 The query is a regular expression.
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery \-q size 'www\-client/*'
@@ -615,7 +615,7 @@ Get a one\-line summary of the number of files and total size (in bytes) of thos
 .BI "uses (u) [OPTIONS] " "PKG"
 Display USE flag statuses and descriptions for a given \fRPKG\fP.
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-a, \-\-all
 .br
@@ -629,7 +629,7 @@ Show the forced and masked USE flags
 .br
 Do not show the l10n USE flags
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery uses app\-misc/beagle
@@ -647,7 +647,7 @@ This Bash one\-liner uses \fBhasuse\fP to find a list of packages that have a ce
 .BI "which (w) [OPTIONS] " "PKG"
 Display the path to the ebuild that would be used by Portage with the current configuration.
 
-.I R "LOCAL OPTIONS" ":"
+.IR "LOCAL OPTIONS" ":"
 .HP
 .B \-m, \-\-include\-masked
 .br
@@ -657,7 +657,7 @@ Return the path to the highest version ebuild available.
 .br
 Print the contents of the ebuild
 .P
-.I R "EXAMPLES" ":"
+.IR "EXAMPLES" ":"
 .EX
 .HP
 equery which \-e xorg\-server
