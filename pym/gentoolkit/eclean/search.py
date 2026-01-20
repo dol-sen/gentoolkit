@@ -685,12 +685,9 @@ def findPackages(
                 binpkg_path = bin_dbapi.bintree.getname(drop_cpv)
                 dead_binpkgs.setdefault(binpkg_key, []).append(binpkg_path)
 
-                if new_time >= old_time:
-                    keep_binpkgs[cpv_key] = cpv
-                else:
+                if new_time < old_time:
                     continue
-            else:
-                keep_binpkgs[cpv_key] = cpv
+            keep_binpkgs[cpv_key] = cpv
 
         # Exclude if binpkg exists in the porttree and not --deep
         if not destructive and port_dbapi.cpv_exists(cpv):
