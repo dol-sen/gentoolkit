@@ -612,10 +612,7 @@ def doAction(action, options, exclude={}, output=None):
         elif action in ["packages"]:
             clean_size = cleaner.clean_pkgs(clean_me, pkgdir)
         # vocabulary for final message
-        if options["pretend"]:
-            verb = "would be"
-        else:
-            verb = "were"
+        verb = "would be" if options["pretend"] else "were"
         # display freed space
         if not options["quiet"]:
             output.total("normal", clean_size, len(clean_me) + len(vcs), verb, action)
