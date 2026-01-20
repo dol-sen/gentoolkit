@@ -641,6 +641,11 @@ def findPackages(
     dead_binpkgs: dict[str, list[str]] = {}
     keep_binpkgs = {}
 
+    def mk_binpkg_key(cpv):
+        if cpv.build_id is None:
+            return str(cpv)
+        return f"{cpv}~{cpv.build_id}"
+
     # FEATURES=pkgdir-index-trusted is now on by default which makes Portage's
     # invalids inaccessible
     settings = var_dbapi.settings
@@ -652,6 +657,7 @@ def findPackages(
         bin_dbapi.bintree.populate(force_reindex=True, **populate_kwargs)
     for cpv in bin_dbapi.cpv_all():
         cp = portage.cpv_getkey(cpv)
+        binpkg_key = mk_binpkg_key(cpv)
 
         # Exclude per --exclude-file=...
         if exclDictMatchCP(exclude, cp):
@@ -675,8 +681,9 @@ def findPackages(
                 new_time = int(bin_dbapi.aux_get(cpv, ["BUILD_TIME"])[0])
                 drop_cpv = old_cpv if new_time >= old_time else cpv
 
+                binpkg_key = mk_binpkg_key(drop_cpv)
                 binpkg_path = bin_dbapi.bintree.getname(drop_cpv)
-                dead_binpkgs.setdefault(drop_cpv, []).append(binpkg_path)
+                dead_binpkgs.setdefault(binpkg_key, []).append(binpkg_path)
 
                 if new_time >= old_time:
                     keep_binpkgs[cpv_key] = cpv
@@ -723,7 +730,7 @@ def findPackages(
             del keep_binpkgs[cpv_key]
 
         binpkg_path = bin_dbapi.bintree.getname(cpv)
-        dead_binpkgs.setdefault(cpv, []).append(binpkg_path)
+        dead_binpkgs.setdefault(binpkg_key, []).append(binpkg_path)
     try:
         invalid_paths = bin_dbapi.bintree.invalid_paths
     except AttributeError:
