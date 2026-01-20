@@ -604,7 +604,8 @@ def doAction(action, options, exclude={}, output=None):
         if options["pretend"]:
             if options["skip-vcs"] or not options["destructive"]:
                 vcs = {}
-            clean_size = cleaner.pretend_clean(clean_me, vcs)
+            file_type = "binary package" if action in ["packages"] else "file"
+            clean_size = cleaner.pretend_clean(clean_me, vcs, file_type)
         elif action in ["distfiles"]:
             if options["skip-vcs"] or not options["destructive"]:
                 vcs = {}

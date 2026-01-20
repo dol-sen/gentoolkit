@@ -76,7 +76,7 @@ class CleanUp:
         # return total size of deleted or to delete files
         return clean_size
 
-    def pretend_clean(self, clean_dict, vcs={}):
+    def pretend_clean(self, clean_dict, vcs={}, file_type="file"):
         """Shortcut function that calculates total space savings
         for the files in clean_dict.
 
@@ -84,7 +84,6 @@ class CleanUp:
         @rtype: integer
         @return: total size that would be cleaned
         """
-        file_type = "file"
         clean_size = 0
         # tally all entries one by one; sorting helps reading
         if vcs:
