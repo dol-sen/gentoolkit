@@ -772,11 +772,13 @@ def findPackages(
             dead_binpkgs.setdefault(location, {})[binpkg_key] = (binpkg_path, debuginfo_path)
 
         try:
-            for f, paths in bin_dbapi.bintree.invalid_paths.items():
-                if f in invalid_paths:
-                    invalid_paths[f].extend(paths)
-                else:
-                    invalid_paths[f] = paths
+            invalid_paths[location] = bin_dbapi.bintree.invalid_paths
+            # A little dirty, but it makes the structure of
+            # invalid_paths match the structure of dead_binpkgs.
+            for file_ in invalid_paths[location]:
+                if len(invalid_paths[location][file_]) == 1:
+                    full_path = invalid_paths[location][file_][0]
+                    invalid_paths[location][file_] = (full_path, None)
         except AttributeError:
             # if bintree.invalid_paths was not initialized, this is a
             # hard error and we can just return here
