@@ -60,8 +60,10 @@ class CleanUp:
         file_type = "binary package"
         clean_size = 0
         # clean all entries one by one; sorting helps reading
-        for key in sorted(clean_dict):
-            clean_size += self._clean_binary_package(clean_dict[key], key)
+        for location, loc_clean_dict in clean_dict.items():
+            print(" * Location", pp.path(location))
+            for key in sorted(loc_clean_dict):
+                clean_size += self._clean_binary_package(loc_clean_dict[key], key)
 
         #  run 'emaint --fix' here
         if clean_size:
@@ -95,11 +97,13 @@ class CleanUp:
                 clean_size += key_size
         else:
             # binary package
-            for key in sorted(clean_dict):
-                (binpkg, debugpack) = clean_dict[key]
-                key_size = self._get_size([binpkg, debugpack] if debugpack else [binpkg])
-                self.controller(key_size, key, clean_dict[key], file_type)
-                clean_size += key_size
+            for location, loc_clean_dict in clean_dict.items():
+                print(" * Location", pp.path(location))
+                for key in sorted(loc_clean_dict):
+                    (binpkg, debugpack) = loc_clean_dict[key]
+                    key_size = self._get_size([binpkg, debugpack] if debugpack else [binpkg])
+                    self.controller(key_size, key, loc_clean_dict[key], file_type)
+                    clean_size += key_size
 
         return clean_size
 

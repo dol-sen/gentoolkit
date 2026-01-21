@@ -594,6 +594,13 @@ def doAction(action, options, exclude={}, output=None):
 
     # actually clean files if something was found
     if clean_me or vcs:
+        file_count = len(clean_me)
+        if action in ["packages"]:
+            file_count = sum(
+                2 if entry[1] else 1
+                for loc_entries in clean_me.values()
+                for entry in loc_entries.values()
+            )
         # verbose pretend message
         if options["pretend"] and not options["quiet"]:
             output.einfo("Here are the " + files_type + " that would be deleted:")
@@ -616,7 +623,7 @@ def doAction(action, options, exclude={}, output=None):
         verb = "would be" if options["pretend"] else "were"
         # display freed space
         if not options["quiet"]:
-            output.total("normal", clean_size, len(clean_me) + len(vcs), verb, action)
+            output.total("normal", clean_size, file_count + len(vcs), verb, action)
     # nothing was found
     elif not options["quiet"]:
         output.einfo("Your " + action + " directory was already clean.")
