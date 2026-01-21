@@ -40,7 +40,7 @@ class CleanUp:
         clean_size = 0
         # clean all entries one by one; sorting helps reading
         for key in sorted(clean_dict):
-            clean_size += self._clean_files(clean_dict[key], key, file_type)
+            clean_size += self._clean_files(clean_dict[key], key)
         # return total size of deleted or to delete files
         clean_size += self._clean_vcs_src(vcs)
         return clean_size
@@ -61,7 +61,7 @@ class CleanUp:
         clean_size = 0
         # clean all entries one by one; sorting helps reading
         for key in sorted(clean_dict):
-            clean_size += self._clean_files(clean_dict[key], key, file_type)
+            clean_size += self._clean_binary_package(clean_dict[key], key)
 
         #  run 'emaint --fix' here
         if clean_size:
@@ -88,10 +88,19 @@ class CleanUp:
         # tally all entries one by one; sorting helps reading
         if vcs:
             clean_size += self._clean_vcs_src(vcs, pretend=True)
-        for key in sorted(clean_dict):
-            key_size = self._get_size(clean_dict[key])
-            self.controller(key_size, key, clean_dict[key], file_type)
-            clean_size += key_size
+        if file_type == "file":
+            for key in sorted(clean_dict):
+                key_size = self._get_size(clean_dict[key])
+                self.controller(key_size, key, clean_dict[key], file_type)
+                clean_size += key_size
+        else:
+            # binary package
+            for key in sorted(clean_dict):
+                (binpkg, debugpack) = clean_dict[key]
+                key_size = self._get_size([binpkg, debugpack] if debugpack else [binpkg])
+                self.controller(key_size, key, clean_dict[key], file_type)
+                clean_size += key_size
+
         return clean_size
 
     def _get_size(self, key):
@@ -111,7 +120,72 @@ class CleanUp:
                 print(pp.error("Error: %s" % str(er)), file=sys.stderr)
         return key_size
 
-    def _clean_files(self, files, key, file_type):
+    def _get_size_valid_symlink(self, file_):
+        """
+        Get a file size, attempting to remove broken symlinks when
+        possible (attempting to remove any broken symlinks results in
+        this function returning 0).
+        """
+        try:
+            statinfo = os.stat(file_)
+            if statinfo.st_nlink == 1:
+                return statinfo.st_size
+        except OSError as er:
+            if os.path.exists(os.readlink(file_)):
+                print(pp.error("Could not get stat info for:" + file_), file=sys.stderr)
+                print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+            else:
+                try:
+                    os.remove(file_)
+                    print(
+                        pp.error("Removed broken symbolic link " + file_),
+                        file=sys.stderr,
+                    )
+                except OSError as er:
+                    print(
+                        pp.error("Error deleting broken symbolic link " + file_),
+                        file=sys.stderr,
+                    )
+                    print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+        return 0
+
+    def _clean_binary_package(self, files: tuple[str, str | None], key: str):
+        # collect files
+        rm_files = []
+        rm_size = 0
+
+        if (sz := self._get_size_valid_symlink(files[0])):
+            rm_files.append(files[0])
+            rm_size += sz
+
+        if files[1] and (sz := self._get_size_valid_symlink(files[1])):
+            rm_files.append(files[1])
+            rm_size += sz
+
+        if not rm_size:
+            return 0
+
+        # optionally prompt for removal
+        clean_size = 0
+        if self.controller(rm_size, key, files, "binary package"):
+            for file_ in rm_files:
+                # ... try to delete it.
+                try:
+                    statinfo = os.stat(file_)
+                    os.unlink(file_)
+                    # only count size if successfully deleted and not a link
+                    if statinfo.st_nlink == 1:
+                        clean_size += statinfo.st_size
+                        try:
+                            os.rmdir(os.path.dirname(file_))
+                        except OSError:
+                            pass
+                except OSError as er:
+                    print(pp.error("Could not delete " + file_), file=sys.stderr)
+                    print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+        return clean_size
+
+    def _clean_files(self, files, key):
         """File removal function."""
         clean_size = 0
         for file_ in files:
@@ -141,7 +215,7 @@ class CleanUp:
                         file=sys.stderr,
                     )
                     print(pp.error("Error: %s" % str(er)), file=sys.stderr)
-            if self.controller(statinfo.st_size, key, file_, file_type):
+            if self.controller(statinfo.st_size, key, file_, "file"):
                 # ... try to delete it.
                 try:
                     os.unlink(file_)

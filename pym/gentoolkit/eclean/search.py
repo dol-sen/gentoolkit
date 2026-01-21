@@ -38,6 +38,11 @@ DEPRECATED = pp.warn(deprecated_message)
 
 debug_modules = []
 
+# Location for debuginfo tarballs
+PACKDEBUG_PATH = "/usr/lib/debug/.tarball"
+# suffix (including extension) of debug tarballs
+PACKDEBUG_TARBALL_SUFFIX = "debug.tar.xz"
+
 
 def dprint(module, message):
     if module in debug_modules:
@@ -580,6 +585,24 @@ def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, libc_deps, uselist=None, cpv=Non
     return deps_a == deps_b
 
 
+def _find_debuginfo_tarball(cpv: portage.versions._pkg_str, cp: str):
+    """
+    From a CPV, identify and check for a matching debuginfo tarball.
+
+    Returns None if no such file exists
+    """
+    pf = portage.catsplit(cpv)[1]
+    if cpv.build_id is None:
+        debuginfo_tarball = "-".join([pf, PACKDEBUG_TARBALL_SUFFIX])
+    else:
+        debuginfo_tarball = "-".join([pf, str(cpv.build_id), PACKDEBUG_TARBALL_SUFFIX])
+
+    debuginfo_path = os.path.join(PACKDEBUG_PATH, cp, debuginfo_tarball)
+    if not os.path.exists(debuginfo_path):
+        return None
+    return debuginfo_path
+
+
 def findPackages(
     options: dict[str, bool],
     exclude: Optional[dict] = None,
@@ -638,7 +661,7 @@ def findPackages(
 
     # Dictionary of binary packages to clean. Organized as cpv->[pkgs] in order
     # to support FEATURES=binpkg-multi-instance.
-    dead_binpkgs: dict[str, list[str]] = {}
+    dead_binpkgs: dict[str, tuple[str, str | None]] = {}
     keep_binpkgs = {}
 
     def mk_binpkg_key(cpv):
@@ -683,7 +706,8 @@ def findPackages(
 
                 binpkg_key = mk_binpkg_key(drop_cpv)
                 binpkg_path = bin_dbapi.bintree.getname(drop_cpv)
-                dead_binpkgs.setdefault(binpkg_key, []).append(binpkg_path)
+                debuginfo_path = _find_debuginfo_tarball(drop_cpv, cp)
+                dead_binpkgs[binpkg_key] = (binpkg_path, debuginfo_path)
 
                 if new_time < old_time:
                     continue
@@ -727,7 +751,8 @@ def findPackages(
             del keep_binpkgs[cpv_key]
 
         binpkg_path = bin_dbapi.bintree.getname(cpv)
-        dead_binpkgs.setdefault(binpkg_key, []).append(binpkg_path)
+        debuginfo_path = _find_debuginfo_tarball(cpv, cp)
+        dead_binpkgs[binpkg_key] = (binpkg_path, debuginfo_path)
     try:
         invalid_paths = bin_dbapi.bintree.invalid_paths
     except AttributeError:
