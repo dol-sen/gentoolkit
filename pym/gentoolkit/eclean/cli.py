@@ -667,7 +667,8 @@ def doAction(action, options, exclude={}, output=None):
                 output.set_colors("invalid")
                 output.list_pkgs(invalids)
                 clean_size = cleaner.clean_pkgs(invalids, pkgdir)
-                output.total("invalid", clean_size, len(invalids), verb, action)
+                invalid_count = sum(len(pkgs) for pkgs in invalids.values())
+                output.total("invalid", clean_size, invalid_count, verb, action)
             else:
                 cleaner.clean_pkgs(invalids, pkgdir)
 

@@ -200,17 +200,18 @@ class OutputControl:
             print(" ===========")
             print(self.prettySize(size, True, red), message)
 
-    def list_pkgs(self, pkgs):
+    def list_pkgs(self, loc_pkgs):
         """outputs the packages to stdout
 
-        @param pkgs: dict. of {cat/pkg-ver: src_uri,}
+        @param pkgs: dict. of {location: {cat/pkg-ver: src_uri,} }
         """
         indent = " " * 12
-        keys = sorted(pkgs)
-        for key in keys:
-            if pkgs[key]:
-                saved = ""
-            else:
-                saved = " ...distfile name(s) not known/saved"
-            print(indent, self.pkg_color(key) + saved)
-        print()
+        for pkgs in loc_pkgs.values():
+            keys = sorted(pkgs)
+            for key in keys:
+                if pkgs[key]:
+                    saved = ""
+                else:
+                    saved = " ...distfile name(s) not known/saved"
+                print(indent, self.pkg_color(key) + saved)
+            print()
