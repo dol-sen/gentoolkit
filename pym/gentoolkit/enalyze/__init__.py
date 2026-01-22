@@ -7,7 +7,6 @@
 
 """Gentoo's installed packages analysis and repair tool"""
 
-
 # Move to Imports section after Python 2.6 is stable
 
 
@@ -41,7 +40,6 @@ from gentoolkit.base import (
     parse_global_options,
     print_help,
 )
-
 
 NAME_MAP = {"a": "analyze", "r": "rebuild"}
 

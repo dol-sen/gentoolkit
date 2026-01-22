@@ -141,7 +141,7 @@ class AnalysisPrinter(CpvValueWrapper):
         """Determines the stats for key, formats it and
         calls the pre-determined print function
         """
-        (plus, minus, cleaned) = flags
+        plus, minus, cleaned = flags
         _plus = []
         _minus = []
         _cleaned = []
@@ -162,7 +162,7 @@ class AnalysisPrinter(CpvValueWrapper):
 
     def print_pkg_verbose(self, cpv, flags):
         """Verbosely prints the pkg's use flag info."""
-        (plus, minus, unset) = flags
+        plus, minus, unset = flags
         _flags = []
         for flag in plus:
             _flags.append(pp.useflag((flag), True))
@@ -175,7 +175,7 @@ class AnalysisPrinter(CpvValueWrapper):
 
     def print_pkg_quiet(self, cpv, flags):
         """Verbosely prints the pkg's use flag info."""
-        (plus, minus, unset) = flags
+        plus, minus, unset = flags
         _flags = []
         for flag in plus:
             _flags.append(pp.useflag((flag), True))
