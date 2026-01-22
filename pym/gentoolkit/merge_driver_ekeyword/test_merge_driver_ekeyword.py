@@ -13,7 +13,6 @@ import tempfile
 
 from gentoolkit.merge_driver_ekeyword import merge_driver_ekeyword
 
-
 TESTDIR = pathlib.Path(__file__).parent / "tests"
 TESTDIRS = [os.path.dirname(x) for x in TESTDIR.rglob("common-ancestor.ebuild")]
 TESTDATA = itertools.product(TESTDIRS, (False, True))
