@@ -9,7 +9,6 @@ import shutil
 import sys
 
 import gentoolkit.pprinter as pp
-import portage
 from portage.emaint.main import TaskHandler
 from portage.emaint.modules.binhost import binhost
 
@@ -36,7 +35,6 @@ class CleanUp:
         @rtype: int
         @return: total size that was cleaned
         """
-        file_type = "file"
         clean_size = 0
         # clean all entries one by one; sorting helps reading
         for key in sorted(clean_dict):
@@ -57,7 +55,6 @@ class CleanUp:
         @rtype: int
         @return: total size that was cleaned
         """
-        file_type = "binary package"
         clean_size = 0
         # clean all entries one by one; sorting helps reading
         for location, loc_clean_dict in clean_dict.items():
