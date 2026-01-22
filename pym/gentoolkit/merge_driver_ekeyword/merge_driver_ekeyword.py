@@ -20,7 +20,6 @@ from collections.abc import Sequence
 
 from gentoolkit.ekeyword import ekeyword
 
-
 KeywordChanges = list[tuple[Optional[list[str]], Optional[list[str]]]]
 
 
