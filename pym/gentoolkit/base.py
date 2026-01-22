@@ -3,8 +3,7 @@
 # Copyright(c) 2009-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-"""Gentoolkit Base Module class to hold common module operation functions
-"""
+"""Gentoolkit Base Module class to hold common module operation functions"""
 
 __docformat__ = "epytext"
 
@@ -15,7 +14,6 @@ import sys
 import gentoolkit
 import gentoolkit.pprinter as pp
 from gentoolkit.formatters import format_options
-
 
 GLOBAL_OPTIONS = (
     ("    -h, --help", "display this help message"),

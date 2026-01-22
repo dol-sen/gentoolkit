@@ -5,7 +5,7 @@
 """Miscellaneous helper functions and classes.
 
 @note: find_* functions that previously lived here have moved to
-	   the query module, where they are called as: Query('portage').find_*().
+           the query module, where they are called as: Query('portage').find_*().
 """
 
 __all__ = (

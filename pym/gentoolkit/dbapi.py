@@ -4,9 +4,9 @@
 # Distributed under the terms of the GNU General Public License v2
 
 """Provides access to Portage database api
-	Note: this file is deprecated, please replace all use
-	of these variable with the assigned calls.  That will
-	take advantage of them being lazy-loaded.
+Note: this file is deprecated, please replace all use
+of these variable with the assigned calls.  That will
+take advantage of them being lazy-loaded.
 """
 
 print(
