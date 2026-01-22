@@ -9,7 +9,6 @@
 """Provides a rebuild file of USE flags or keywords used and by
 what packages according to the Installed package database"""
 
-
 import os
 
 import gentoolkit

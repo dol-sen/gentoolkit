@@ -485,7 +485,7 @@ class Analyse(ModuleBase):
             print("   cat/pkg-ver                             USE Flags")
             # blankline = lambda: None
         for cpv in cpvs:
-            (flag_plus, flag_neg, unset) = flags.analyse_cpv(cpv)
+            flag_plus, flag_neg, unset = flags.analyse_cpv(cpv)
             if self.options["unset"]:
                 self.printer(
                     cpv, "", (sorted(flag_plus), sorted(flag_neg), sorted(unset))
