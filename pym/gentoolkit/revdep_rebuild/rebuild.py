@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
 
-""" Rebuild module
+"""Rebuild module
 
 Main program, cli parsing and api program control and operation
 
 Author: Sławomir Lis <lis.slawek@gmail.com>
-	revdep-rebuild original author: Stanislav Brabec
-	revdep-rebuild original rewrite Author: Michael A. Smith
+        revdep-rebuild original author: Stanislav Brabec
+        revdep-rebuild original rewrite Author: Michael A. Smith
 Current Maintainer: Paul Varner <fuzzyray@gentoo.org>
 Creation date: 2010/10/17
 License: BSD
@@ -30,7 +30,6 @@ from .assign import get_slotted_cps
 from .settings import DEFAULTS, parse_options
 from .stuff import filter_masked
 from . import __version__
-
 
 APP_NAME = sys.argv[0]
 VERSION = __version__
