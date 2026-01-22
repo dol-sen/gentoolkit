@@ -9,7 +9,6 @@ import unittest
 
 from gentoolkit.profile import load_profile_data
 
-
 TESTDIR = os.path.join(os.path.dirname(__file__), "../ekeyword/tests")
 
 

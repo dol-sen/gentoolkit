@@ -49,7 +49,6 @@ from gentoolkit.profile import load_profile_data
 import portage
 from portage.output import colorize, nocolor
 
-
 __version__ = "@VERSION@"
 
 # Operation object that describes how to perform a change.

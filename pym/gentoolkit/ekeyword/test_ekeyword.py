@@ -14,7 +14,6 @@ from unittest import mock
 
 from gentoolkit.ekeyword import ekeyword
 
-
 TESTDIR = os.path.join(os.path.dirname(__file__), "tests")
 
 
