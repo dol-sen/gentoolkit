@@ -7,7 +7,6 @@
 
 """Provides support functions for USE flag settings and analysis"""
 
-
 __all__ = (
     "get_iuse",
     "get_installed_use",

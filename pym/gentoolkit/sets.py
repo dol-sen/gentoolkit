@@ -22,7 +22,6 @@ except ImportError:
 from gentoolkit import errors
 from gentoolkit.atom import Atom
 
-
 _set_config = None
 
 
