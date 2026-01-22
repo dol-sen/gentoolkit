@@ -232,7 +232,7 @@ def get_packages(conf):
             cpvr = portage.versions.best(slots[slot])
 
             if cpvr:
-                (cat, pkg, ver, rev) = portage.versions.catpkgsplit(cpvr)
+                cat, pkg, ver, rev = portage.versions.catpkgsplit(cpvr)
 
                 if not cat in list(_pkgs.keys()):
                     _pkgs[cat] = {}
@@ -488,7 +488,7 @@ def main():
         help="just check in the specified category/categories (comma separated) [default: %default]",
     )
 
-    (options, args) = parser.parse_args()
+    options, args = parser.parse_args()
 
     if len(args) > 0:
         conf["USER_PKGS"] = args
