@@ -132,8 +132,9 @@ class DistfilesSearch:
         if (not destructive) or fetch_restricted:
             self.output("...non-destructive type search")
             pkgs, _deprecated = self._non_destructive(destructive, fetch_restricted)
-            # simulate the same structure as invalid binpkgs for list_pkgs()
-            deprecated.update({_distdir: _deprecated})
+            if _deprecated:
+                # use the same structure as invalid binpkgs for list_pkgs()
+                deprecated.update({_distdir: _deprecated})
             installed_included = True
         if destructive:
             self.output(
@@ -142,8 +143,9 @@ class DistfilesSearch:
             pkgs, _deprecated = self._destructive(
                 package_names, exclude, pkgs, installed_included
             )
-            # simulate the same structure as invalid binpkgs for list_pkgs()
-            deprecated.update({_distdir: _deprecated)
+            if _deprecated:
+                # use the same structure as invalid binpkgs for list_pkgs()
+                deprecated.update({_distdir: _deprecated})
         # gather the files to be cleaned
         self.output("...checking limits for %d ebuild sources" % len(pkgs))
 
