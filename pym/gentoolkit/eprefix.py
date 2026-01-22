@@ -9,9 +9,10 @@ used in all gentoolkit modules
 
 Example useage:  from gentoolkit.eprefix import EPREFIX
 then in code add it to the filepath eg.:
-	exclude_file = "%s/etc/%s/%s.exclude" % (EPREFIX,__productname__ , action)
+        exclude_file = "%s/etc/%s/%s.exclude" % (EPREFIX,__productname__ , action)
 
 """
+
 # Load EPREFIX from Portage, fall back to the empty string if it fails
 try:
     from portage.const import EPREFIX
