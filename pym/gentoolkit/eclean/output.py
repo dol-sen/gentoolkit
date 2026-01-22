@@ -136,7 +136,11 @@ class OutputControl:
         if not self.options["quiet"]:
             # pretty print mode
             if file_type == "binary package" and clean_list[1] is not None:
-                print(self.prettySize(size, True), self.pkg_color(key), "(+ debug tarball)")
+                print(
+                    self.prettySize(size, True),
+                    self.pkg_color(key),
+                    "(+ debug tarball)",
+                )
             else:
                 print(self.prettySize(size, True), self.pkg_color(key))
         elif self.options["pretend"] or self.options["interactive"]:

@@ -9,7 +9,6 @@ import re
 import portage
 from portage import _encodings, _unicode_encode
 
-
 # Misc. shortcuts to some portage stuff:
 listdir = portage.listdir
 

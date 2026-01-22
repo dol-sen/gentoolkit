@@ -10,7 +10,6 @@ from tempfile import mkdtemp
 import subprocess
 import portage
 
-
 dir_mode = 0o774
 
 CPVS = [

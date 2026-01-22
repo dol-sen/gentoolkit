@@ -392,16 +392,14 @@ class DistfilesSearch:
         for cpv in cpvs:
             # get SRC_URI and RESTRICT from aux_get
             try:  # main portdb
-                (src_uri, restrict) = self.portdb.aux_get(cpv, ["SRC_URI", "RESTRICT"])
+                src_uri, restrict = self.portdb.aux_get(cpv, ["SRC_URI", "RESTRICT"])
                 # keep fetch-restricted check
                 # inside try so it is bypassed on KeyError
                 if "fetch" in restrict:
                     pkgs[cpv] = src_uri
             except KeyError:
                 try:  # installed vardb
-                    (src_uri, restrict) = self.vardb.aux_get(
-                        cpv, ["SRC_URI", "RESTRICT"]
-                    )
+                    src_uri, restrict = self.vardb.aux_get(cpv, ["SRC_URI", "RESTRICT"])
                     deprecated[cpv] = src_uri
                     self.output(DEPRECATED % cpv)
                     # keep fetch-restricted check
@@ -680,7 +678,7 @@ def findPackages(
 
     # Load binrepos.conf if possible, get all cache locations
     binrepos_conf_path = os.path.join(
-        settings['PORTAGE_CONFIGROOT'], portage.const.BINREPOS_CONF_FILE
+        settings["PORTAGE_CONFIGROOT"], portage.const.BINREPOS_CONF_FILE
     )
     binrepos_conf = BinRepoConfigLoader((binrepos_conf_path,), settings)
     locations = {pkgdir}
@@ -728,7 +726,10 @@ def findPackages(
                     binpkg_key = mk_binpkg_key(drop_cpv)
                     binpkg_path = bin_dbapi.bintree.getname(drop_cpv)
                     debuginfo_path = _find_debuginfo_tarball(drop_cpv, cp)
-                    dead_binpkgs.setdefault(location, {})[binpkg_key] = (binpkg_path, debuginfo_path)
+                    dead_binpkgs.setdefault(location, {})[binpkg_key] = (
+                        binpkg_path,
+                        debuginfo_path,
+                    )
 
                     if new_time < old_time:
                         continue
@@ -773,7 +774,10 @@ def findPackages(
 
             binpkg_path = bin_dbapi.bintree.getname(cpv)
             debuginfo_path = _find_debuginfo_tarball(cpv, cp)
-            dead_binpkgs.setdefault(location, {})[binpkg_key] = (binpkg_path, debuginfo_path)
+            dead_binpkgs.setdefault(location, {})[binpkg_key] = (
+                binpkg_path,
+                debuginfo_path,
+            )
 
         try:
             invalid_paths[location] = bin_dbapi.bintree.invalid_paths

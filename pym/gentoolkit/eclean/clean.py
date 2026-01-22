@@ -97,8 +97,10 @@ class CleanUp:
             for location, loc_clean_dict in clean_dict.items():
                 print(" * Location", pp.path(location))
                 for key in sorted(loc_clean_dict):
-                    (binpkg, debugpack) = loc_clean_dict[key]
-                    key_size = self._get_size([binpkg, debugpack] if debugpack else [binpkg])
+                    binpkg, debugpack = loc_clean_dict[key]
+                    key_size = self._get_size(
+                        [binpkg, debugpack] if debugpack else [binpkg]
+                    )
                     self.controller(key_size, key, loc_clean_dict[key], file_type)
                     clean_size += key_size
 
@@ -155,7 +157,7 @@ class CleanUp:
         rm_files = []
         rm_size = 0
 
-        if (sz := self._get_size_valid_symlink(files[0])):
+        if sz := self._get_size_valid_symlink(files[0]):
             rm_files.append(files[0])
             rm_size += sz
 
