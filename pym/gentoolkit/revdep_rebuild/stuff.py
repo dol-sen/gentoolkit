@@ -2,7 +2,6 @@
 
 """Utilities submodule"""
 
-
 import subprocess
 
 import portage

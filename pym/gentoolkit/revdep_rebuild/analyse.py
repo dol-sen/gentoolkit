@@ -250,7 +250,7 @@ class LibCheck:
                                     "\tFile %s ignored as it is masked" % filename
                                 )
                                 continue
-                            if l.startswith('/') and os.path.isfile(l):
+                            if l.startswith("/") and os.path.isfile(l):
                                 self.logger.debug(
                                     "\tLibrary %s is a full path and it exists" % l
                                 )
