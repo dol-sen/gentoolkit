@@ -203,7 +203,7 @@ class OutputControl:
     def list_pkgs(self, loc_pkgs):
         """outputs the packages to stdout
 
-        @param pkgs: dict. of {location: {cat/pkg-ver: src_uri,} }
+        @param loc_pkgs: dict. of {location: {cat/pkg-ver: src_uri,} }
         """
         indent = " " * 12
         for pkgs in loc_pkgs.values():
