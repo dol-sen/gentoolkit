@@ -687,6 +687,31 @@ class PkgsSearch:
         @return binary packages to remove. e.g. {'cat/pkg-ver': [filepath]}, invalid_paths
         @rtype: dict, dict
         """
+        # ensure set_binhosts() has been run
+        if (
+            not isinstance(self.settings, portage.package.ebuild.config.config)
+            or not isinstance(
+                self.binrepos_conf, portage.binrepo.config.BinRepoConfigLoader
+            )
+            or not self.locations
+        ):
+            print(pp.error("Error PkgsSearch class not initalized."), file=sys.stderr)
+            print(
+                pp.error("Error Run PkgsSearch.set_binhosts() to initalize."),
+                file=sys.stderr,
+            )
+            print(
+                pp.error(f"variables: self.settings {self.settings}"), file=sys.stderr
+            )
+            print(
+                pp.error(f"variables: self.binrepos_conf {self.binrepos_conf}"),
+                file=sys.stderr,
+            )
+            print(
+                pp.error(f"variables: self.locations {self.locations}"), file=sys.stderr
+            )
+            exit(1)
+
         if exclude is None:
             exclude = {}
 
