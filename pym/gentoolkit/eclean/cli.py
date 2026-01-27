@@ -566,15 +566,16 @@ def doAction(action, options, exclude={}, output=None):
     if action == "packages":
         engine = PkgsSearch(
             options,
+            # port_dbapi=Dbapi(portage.db[portage.root]["porttree"].dbapi),
+            # var_dbapi=Dbapi(portage.db[portage.root]["vartree"].dbapi),
         )
+        engine.set_binhosts()  # inital move. Future: pass in options?
         clean_me, invalids = engine.findPackages(
             exclude=exclude,
             destructive=options["destructive"],
             package_names=options["package-names"],
             time_limit=options["time-limit"],
             pkgdir=pkgdir,
-            # port_dbapi=Dbapi(portage.db[portage.root]["porttree"].dbapi),
-            # var_dbapi=Dbapi(portage.db[portage.root]["vartree"].dbapi),
         )
     else:
         # accept defaults

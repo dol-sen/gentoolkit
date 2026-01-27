@@ -542,12 +542,23 @@ class PkgsSearch:
     def __init__(
         self,
         options: dict[str, bool],
+        port_dbapi=portage.db[portage.root]["porttree"].dbapi,
+        var_dbapi=portage.db[portage.root]["vartree"].dbapi,
     ):
         """
         @param options: dict of options determined at runtime
         @type  options: dict
+        @param port_dbapi: defaults to portage.db[portage.root]["porttree"].dbapi
+                                           Can be overridden for tests.
+        @param  var_dbapi: defaults to portage.db[portage.root]["vartree"].dbapi
+                                           Can be overridden for tests.
         """
         self.options = options
+        self.port_dbapi = port_dbapi
+        self.var_dbapi = var_dbapi
+        self.settings = None
+        self.binhosts = None
+        self.locations = None
 
     def _deps_equal(
         self,
@@ -632,6 +643,24 @@ class PkgsSearch:
             return None
         return debuginfo_path
 
+    def set_binhosts(
+        self,
+    ):
+        """"""
+        # FEATURES=pkgdir-index-trusted is now on by default
+        # which makes Portage's invalids inaccessible
+        self.settings = self.var_dbapi.settings
+        # Load binrepos.conf if possible, get all cache locations
+        binrepos_conf_path = os.path.join(
+            self.settings["PORTAGE_CONFIGROOT"], portage.const.BINREPOS_CONF_FILE
+        )
+        self.binrepos_conf = BinRepoConfigLoader((binrepos_conf_path,), self.settings)
+        self.locations = {pkgdir}
+        if self.binrepos_conf:
+            # check for additional cache locations
+            for v in self.binrepos_conf.values():
+                if v.location:
+                    self.locations.add(v.location)
 
     def findPackages(
         self,
@@ -640,8 +669,6 @@ class PkgsSearch:
         time_limit: Optional[int] = 0,
         package_names: Optional[bool] = False,
         pkgdir: str = None,
-        port_dbapi=portage.db[portage.root]["porttree"].dbapi,
-        var_dbapi=portage.db[portage.root]["vartree"].dbapi,
     ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
         """Find obsolete binary packages.
 
@@ -656,10 +683,6 @@ class PkgsSearch:
         @type  package_names: bool, optional
         @param pkgdir: path to the binpkg cache (PKGDIR)
         @type  pkgdir: str
-        @param port_dbapi: defaults to portage.db[portage.root]["porttree"].dbapi
-                                           Can be overridden for tests.
-        @param  var_dbapi: defaults to portage.db[portage.root]["vartree"].dbapi
-                                           Can be overridden for tests.
 
         @return binary packages to remove. e.g. {'cat/pkg-ver': [filepath]}, invalid_paths
         @rtype: dict, dict
@@ -682,11 +705,11 @@ class PkgsSearch:
             print(pp.error("Error: %s" % str(er)), file=sys.stderr)
             exit(1)
 
-        libc_deps = find_libc_deps(var_dbapi, False)
+        libc_deps = find_libc_deps(self.var_dbapi, False)
 
         # Create a dictionary of all installed packages
         if destructive and package_names:
-            installed = dict.fromkeys(var_dbapi.cp_all())
+            installed = dict.fromkeys(self.var_dbapi.cp_all())
         else:
             installed = {}
 
@@ -700,24 +723,8 @@ class PkgsSearch:
                 return str(cpv)
             return f"{cpv}~{cpv.build_id}"
 
-        # FEATURES=pkgdir-index-trusted is now on by default which makes Portage's
-        # invalids inaccessible
-        settings = var_dbapi.settings
-
-        # Load binrepos.conf if possible, get all cache locations
-        binrepos_conf_path = os.path.join(
-            settings["PORTAGE_CONFIGROOT"], portage.const.BINREPOS_CONF_FILE
-        )
-        binrepos_conf = BinRepoConfigLoader((binrepos_conf_path,), settings)
-        locations = {pkgdir}
-        if binrepos_conf:
-            # check for additional cache locations
-            for v in binrepos_conf.values():
-                if v.location:
-                    locations.add(v.location)
-
         invalid_paths = {}
-        for location in locations:
+        for location in self.locations:
             # Initialize bintree with location
             bin_dbapi = portage.binarytree(
                 pkgdir=location, settings=self.settings
@@ -766,7 +773,7 @@ class PkgsSearch:
                     keep_binpkgs[cpv_key] = cpv
 
                 # Exclude if binpkg exists in the porttree and not --deep
-                if not destructive and port_dbapi.cpv_exists(cpv):
+                if not destructive and self.port_dbapi.cpv_exists(cpv):
                     if not self.options["changed-deps"]:
                         continue
 
@@ -790,14 +797,14 @@ class PkgsSearch:
                     ):
                         continue
 
-                if destructive and var_dbapi.cpv_exists(cpv):
+                if destructive and self.var_dbapi.cpv_exists(cpv):
                     # Exclude if an instance of the package is installed due to
                     # the --package-names option.
-                    if cp in installed and port_dbapi.cpv_exists(cpv):
+                    if cp in installed and self.port_dbapi.cpv_exists(cpv):
                         continue
 
                     # Exclude if BUILD_TIME of binpkg is same as vartree
-                    buildtime = var_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]
+                    buildtime = self.var_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]
                     if buildtime == bin_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]:
                         continue
 
