@@ -564,9 +564,10 @@ def doAction(action, options, exclude={}, output=None):
             "Building file list for " + action + " cleaning... USING PkgsSearch class"
         )
     if action == "packages":
-        engine = PkgsSearch()
-        clean_me, invalids = engine.findPackages(
+        engine = PkgsSearch(
             options,
+        )
+        clean_me, invalids = engine.findPackages(
             exclude=exclude,
             destructive=options["destructive"],
             package_names=options["package-names"],

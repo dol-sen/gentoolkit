@@ -539,8 +539,15 @@ class DistfilesSearch:
 class PkgsSearch:
     """Class to control a package search for cleaning"""
 
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        options: dict[str, bool],
+    ):
+        """
+        @param options: dict of options determined at runtime
+        @type  options: dict
+        """
+        self.options = options
 
     def _deps_equal(
         self,
@@ -628,7 +635,6 @@ class PkgsSearch:
 
     def findPackages(
         self,
-        options: dict[str, bool],
         exclude: Optional[dict] = None,
         destructive: bool = False,
         time_limit: Optional[int] = 0,
@@ -639,8 +645,6 @@ class PkgsSearch:
     ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
         """Find obsolete binary packages.
 
-        @param options: dict of options determined at runtime
-        @type  options: dict
         @param exclude: exclusion dict (as defined in the exclude.parseExcludeFile class)
         @type  exclude: dict, optional
         @param destructive: binpkg is obsolete if not installed (default: `False`)
@@ -668,7 +672,7 @@ class PkgsSearch:
             test = os.listdir(pkgdir)
             del test
         except OSError as er:
-            if options["ignore-failure"]:
+            if self.options["ignore-failure"]:
                 exit(0)
             print(pp.error("Error accessing PKGDIR."), file=sys.stderr)
             print(
@@ -738,7 +742,7 @@ class PkgsSearch:
                         continue
 
                 # Exclude if binpkg has exact same USEs
-                if not destructive and options["unique-use"]:
+                if not destructive and self.options["unique-use"]:
                     keys = ("EAPI", "USE")
                     binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
                     cpv_key = f"{cpv}_{'_'.join(binpkg_metadata[key] for key in keys)}"
@@ -763,7 +767,7 @@ class PkgsSearch:
 
                 # Exclude if binpkg exists in the porttree and not --deep
                 if not destructive and port_dbapi.cpv_exists(cpv):
-                    if not options["changed-deps"]:
+                    if not self.options["changed-deps"]:
                         continue
 
                     dep_keys = ("RDEPEND", "PDEPEND")
@@ -797,7 +801,7 @@ class PkgsSearch:
                     if buildtime == bin_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]:
                         continue
 
-                if not destructive and options["unique-use"]:
+                if not destructive and self.options["unique-use"]:
                     del keep_binpkgs[cpv_key]
 
                 binpkg_path = bin_dbapi.bintree.getname(cpv)
