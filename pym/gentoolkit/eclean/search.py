@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2003-2024 Gentoo Authors
+# Copyright 2003-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 
