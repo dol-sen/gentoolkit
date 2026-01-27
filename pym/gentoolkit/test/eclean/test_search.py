@@ -26,7 +26,7 @@ from gentoolkit.test.eclean.distsupport import (
 )
 import gentoolkit.eclean.search as search
 from gentoolkit.eclean.search import DistfilesSearch
-from gentoolkit.eclean.search import _deps_equal
+from gentoolkit.eclean.search import PkgsSearch
 from gentoolkit.eclean.exclude import parseExcludeFile
 
 from portage.dep import Atom
@@ -675,6 +675,9 @@ class TestRemoveProtected(unittest.TestCase):
 
 class TestDepsEqual(unittest.TestCase):
 
+    def setUp(self):
+        self.target_class = PkgsSearch(lambda x: None)
+
     def test_deps_equal(self):
         # def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, libc_deps, uselist=None, cpv=None):
         all_tests = [
@@ -811,7 +814,7 @@ class TestDepsEqual(unittest.TestCase):
             data = test[1]
             # print(x, cpv)  # for debug testing
             self.assertEqual(
-                _deps_equal(
+                self.target_class._deps_equal(
                     data["deps_a"],
                     data["eapi_a"],
                     data["deps_b"],

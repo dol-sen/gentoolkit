@@ -28,7 +28,7 @@ from gentoolkit.eclean.exclude import ParseExcludeFileException, parseExcludeFil
 from gentoolkit.eclean.output import OutputControl
 from gentoolkit.eclean.search import (
     DistfilesSearch,
-    findPackages,
+    PkgsSearch,  # formerly: findPackages,
     pkgdir,
     port_settings,
 )
@@ -560,9 +560,12 @@ def doAction(action, options, exclude={}, output=None):
     vcs = []
     # find files to delete, depending on the action
     if not options["quiet"]:
-        output.einfo("Building file list for " + action + " cleaning...")
+        output.einfo(
+            "Building file list for " + action + " cleaning... USING PkgsSearch class"
+        )
     if action == "packages":
-        clean_me, invalids = findPackages(
+        engine = PkgsSearch()
+        clean_me, invalids = engine.findPackages(
             options,
             exclude=exclude,
             destructive=options["destructive"],

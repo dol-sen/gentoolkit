@@ -536,263 +536,291 @@ class DistfilesSearch:
         return clean_me, saved
 
 
-def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, libc_deps, uselist=None, cpv=None):
-    """Compare two dependency lists given a set of USE flags
+class PkgsSearch:
+    """Class to control a package search for cleaning"""
 
-    @param deps_a: binpkg DEPEND string (for InvalidDependString errors)
-    @rtype: string
-    @param eapi_a: EAPI
-    @rtype: string
-    @param deps_b: ebuild DEPEND string (for InvalidDependString errors)
-    @rtype: string
-    @param eapi_b: EAPI
-    @rtype: string
-    @param libc_deps: List of libc packages (or atoms if realized is passed).
-    @rtype: list
-    @param uselist: use flag list
-    @rtype: frozenset
-    @param cpv: Cat/Pkg-version
-    @rtype: string
-    """
-    if deps_a == deps_b:
-        return True
-    try:
-        deps_a = use_reduce(deps_a, uselist=uselist, eapi=eapi_a, token_class=Atom)
-    except InvalidDependString:  # the binpkg depend string is bad
-        print(
-            pp.warn(
-                "Warning: Invalid binpkg DEPEND string found for: %s, %s"
-                " | tagging for removal" % (cpv, deps_a)
-            ),
-            file=sys.stderr,
-        )
-        return False
-    try:
-        deps_b = use_reduce(deps_b, uselist=uselist, eapi=eapi_b, token_class=Atom)
-    except InvalidDependString as er:  # the ebuild depend string is bad
-        print(
-            pp.warn("Warning: Invalid ebuild DEPEND String found for: %s" % cpv),
-            file=sys.stderr,
-        )
-        print(
-            pp.warn("Warning: DEPEND string for ebuild: %s" % deps_b),
-            file=sys.stderr,
-        )
-        print(er, file=sys.stderr)
-        return True
+    def __init__(self):
+        pass
 
-    strip_libc_deps(deps_a, libc_deps)
-    strip_libc_deps(deps_b, libc_deps)
-    strip_slots(deps_a)
-    strip_slots(deps_b)
-    return deps_a == deps_b
+    def _deps_equal(
+        self,
+        deps_a,
+        eapi_a,
+        deps_b,
+        eapi_b,
+        libc_deps,
+        uselist=None,
+        cpv=None,
+    ):
+        """Compare two dependency lists given a set of USE flags
 
+        @param deps_a: binpkg DEPEND string (for InvalidDependString errors)
+        @rtype: string
+        @param eapi_a: EAPI
+        @rtype: string
+        @param deps_b: ebuild DEPEND string (for InvalidDependString errors)
+        @rtype: string
+        @param eapi_b: EAPI
+        @rtype: string
+        @param libc_deps: List of libc packages (or atoms if realized is passed).
+        @rtype: list
+        @param uselist: use flag list
+        @rtype: frozenset
+        @param cpv: Cat/Pkg-version
+        @rtype: string
+        """
+        if deps_a == deps_b:
+            return True
+        try:
+            deps_a = use_reduce(deps_a, uselist=uselist, eapi=eapi_a, token_class=Atom)
+        except InvalidDependString:  # the binpkg depend string is bad
+            print(
+                pp.warn(
+                    "Warning: Invalid binpkg DEPEND string found for: %s, %s"
+                    " | tagging for removal" % (cpv, deps_a)
+                ),
+                file=sys.stderr,
+            )
+            return False
+        try:
+            deps_b = use_reduce(deps_b, uselist=uselist, eapi=eapi_b, token_class=Atom)
+        except InvalidDependString as er:  # the ebuild depend string is bad
+            print(
+                pp.warn("Warning: Invalid ebuild DEPEND String found for: %s" % cpv),
+                file=sys.stderr,
+            )
+            print(
+                pp.warn("Warning: DEPEND string for ebuild: %s" % deps_b),
+                file=sys.stderr,
+            )
+            print(er, file=sys.stderr)
+            return True
 
-def _find_debuginfo_tarball(cpv: portage.versions._pkg_str, cp: str):
-    """
-    From a CPV, identify and check for a matching debuginfo tarball.
+        strip_libc_deps(deps_a, libc_deps)
+        strip_libc_deps(deps_b, libc_deps)
+        strip_slots(deps_a)
+        strip_slots(deps_b)
+        return deps_a == deps_b
 
-    Returns None if no such file exists
-    """
-    pf = portage.catsplit(cpv)[1]
-    if cpv.build_id is None:
-        debuginfo_tarball = "-".join([pf, PACKDEBUG_TARBALL_SUFFIX])
-    else:
-        debuginfo_tarball = "-".join([pf, str(cpv.build_id), PACKDEBUG_TARBALL_SUFFIX])
+    def _find_debuginfo_tarball(
+        self,
+        cpv: portage.versions._pkg_str,
+        cp: str,
+    ):
+        """
+        From a CPV, identify and check for a matching debuginfo tarball.
 
-    debuginfo_path = os.path.join(PACKDEBUG_PATH, cp, debuginfo_tarball)
-    if not os.path.exists(debuginfo_path):
-        return None
-    return debuginfo_path
-
-
-def findPackages(
-    options: dict[str, bool],
-    exclude: Optional[dict] = None,
-    destructive: bool = False,
-    time_limit: Optional[int] = 0,
-    package_names: Optional[bool] = False,
-    pkgdir: str = None,
-    port_dbapi=portage.db[portage.root]["porttree"].dbapi,
-    var_dbapi=portage.db[portage.root]["vartree"].dbapi,
-) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
-    """Find obsolete binary packages.
-
-    @param options: dict of options determined at runtime
-    @type  options: dict
-    @param exclude: exclusion dict (as defined in the exclude.parseExcludeFile class)
-    @type  exclude: dict, optional
-    @param destructive: binpkg is obsolete if not installed (default: `False`)
-    @type  destructive: bool, optional
-    @param time_limit: exclude binpkg if newer than time value as returned by parseTime()
-    @type  time_limit: int, optional
-    @param package_names: exclude all binpkg versions if package is installed
-                                              (used with `destructive=True`) (default: `False`)
-    @type  package_names: bool, optional
-    @param pkgdir: path to the binpkg cache (PKGDIR)
-    @type  pkgdir: str
-    @param port_dbapi: defaults to portage.db[portage.root]["porttree"].dbapi
-                                       Can be overridden for tests.
-    @param  var_dbapi: defaults to portage.db[portage.root]["vartree"].dbapi
-                                       Can be overridden for tests.
-
-    @return binary packages to remove. e.g. {'cat/pkg-ver': [filepath]}, invalid_paths
-    @rtype: dict, dict
-    """
-    if exclude is None:
-        exclude = {}
-
-    # Access test, os.walk does not error for "no read permission"
-    try:
-        test = os.listdir(pkgdir)
-        del test
-    except OSError as er:
-        if options["ignore-failure"]:
-            exit(0)
-        print(pp.error("Error accessing PKGDIR."), file=sys.stderr)
-        print(pp.error("(Check your make.conf file and environment)."), file=sys.stderr)
-        print(pp.error("Error: %s" % str(er)), file=sys.stderr)
-        exit(1)
-
-    libc_deps = find_libc_deps(var_dbapi, False)
-
-    # Create a dictionary of all installed packages
-    if destructive and package_names:
-        installed = dict.fromkeys(var_dbapi.cp_all())
-    else:
-        installed = {}
-
-    # Dictionary of binary packages to clean. Organized as
-    # { location -> { cpv~build-id -> (binpkg, debugpack) } }
-    dead_binpkgs: dict[str, dict[str, tuple[str, str | None]]] = {}
-    keep_binpkgs = {}
-
-    def mk_binpkg_key(cpv):
+        Returns None if no such file exists
+        """
+        pf = portage.catsplit(cpv)[1]
         if cpv.build_id is None:
-            return str(cpv)
-        return f"{cpv}~{cpv.build_id}"
-
-    # FEATURES=pkgdir-index-trusted is now on by default which makes Portage's
-    # invalids inaccessible
-    settings = var_dbapi.settings
-
-    # Load binrepos.conf if possible, get all cache locations
-    binrepos_conf_path = os.path.join(
-        settings["PORTAGE_CONFIGROOT"], portage.const.BINREPOS_CONF_FILE
-    )
-    binrepos_conf = BinRepoConfigLoader((binrepos_conf_path,), settings)
-    locations = {pkgdir}
-    if binrepos_conf:
-        # check for additional cache locations
-        for v in binrepos_conf.values():
-            if v.location:
-                locations.add(v.location)
-
-    invalid_paths = {}
-    for location in locations:
-        # Initialize bintree with location
-        bin_dbapi = portage.binarytree(pkgdir=location, settings=settings).dbapi
-        populate_kwargs = {}
-        if "invalid_errors" in signature(bin_dbapi.bintree.populate).parameters:
-            populate_kwargs["invalid_errors"] = False
-        if "force_reindex" in signature(bin_dbapi.bintree.populate).parameters:
-            bin_dbapi.bintree.populate(force_reindex=True, **populate_kwargs)
-        for cpv in bin_dbapi.cpv_all():
-            cp = portage.cpv_getkey(cpv)
-            binpkg_key = mk_binpkg_key(cpv)
-
-            # Exclude per --exclude-file=...
-            if exclDictMatchCP(exclude, cp):
-                continue
-
-            # Exclude if binpkg is newer than --time-limit=...
-            if time_limit:
-                mtime = int(bin_dbapi.aux_get(cpv, ["_mtime_"])[0])
-                if mtime >= time_limit:
-                    continue
-
-            # Exclude if binpkg has exact same USEs
-            if not destructive and options["unique-use"]:
-                keys = ("EAPI", "USE")
-                binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
-                cpv_key = f"{cpv}_{'_'.join(binpkg_metadata[key] for key in keys)}"
-                if cpv_key in keep_binpkgs:
-                    old_cpv = keep_binpkgs[cpv_key]
-                    # compare BUILD_TIME, keep the new one
-                    old_time = int(bin_dbapi.aux_get(old_cpv, ["BUILD_TIME"])[0])
-                    new_time = int(bin_dbapi.aux_get(cpv, ["BUILD_TIME"])[0])
-                    drop_cpv = old_cpv if new_time >= old_time else cpv
-
-                    binpkg_key = mk_binpkg_key(drop_cpv)
-                    binpkg_path = bin_dbapi.bintree.getname(drop_cpv)
-                    debuginfo_path = _find_debuginfo_tarball(drop_cpv, cp)
-                    dead_binpkgs.setdefault(location, {})[binpkg_key] = (
-                        binpkg_path,
-                        debuginfo_path,
-                    )
-
-                    if new_time < old_time:
-                        continue
-                keep_binpkgs[cpv_key] = cpv
-
-            # Exclude if binpkg exists in the porttree and not --deep
-            if not destructive and port_dbapi.cpv_exists(cpv):
-                if not options["changed-deps"]:
-                    continue
-
-                dep_keys = ("RDEPEND", "PDEPEND")
-                keys = ("EAPI", "USE") + dep_keys
-                binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
-                ebuild_metadata = dict(zip(keys, port_dbapi.aux_get(cpv, keys)))
-
-                deps_binpkg = " ".join(binpkg_metadata[key] for key in dep_keys)
-                deps_ebuild = " ".join(ebuild_metadata[key] for key in dep_keys)
-                if _deps_equal(
-                    deps_binpkg,
-                    binpkg_metadata["EAPI"],
-                    deps_ebuild,
-                    ebuild_metadata["EAPI"],
-                    libc_deps,
-                    frozenset(binpkg_metadata["USE"].split()),
-                    cpv,
-                ):
-                    continue
-
-            if destructive and var_dbapi.cpv_exists(cpv):
-                # Exclude if an instance of the package is installed due to
-                # the --package-names option.
-                if cp in installed and port_dbapi.cpv_exists(cpv):
-                    continue
-
-                # Exclude if BUILD_TIME of binpkg is same as vartree
-                buildtime = var_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]
-                if buildtime == bin_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]:
-                    continue
-
-            if not destructive and options["unique-use"]:
-                del keep_binpkgs[cpv_key]
-
-            binpkg_path = bin_dbapi.bintree.getname(cpv)
-            debuginfo_path = _find_debuginfo_tarball(cpv, cp)
-            dead_binpkgs.setdefault(location, {})[binpkg_key] = (
-                binpkg_path,
-                debuginfo_path,
+            debuginfo_tarball = "-".join([pf, PACKDEBUG_TARBALL_SUFFIX])
+        else:
+            debuginfo_tarball = "-".join(
+                [pf, str(cpv.build_id), PACKDEBUG_TARBALL_SUFFIX]
             )
 
-        try:
-            invalid_paths[location] = bin_dbapi.bintree.invalid_paths
-            # A little dirty, but it makes the structure of
-            # invalid_paths match the structure of dead_binpkgs.
-            for file_ in invalid_paths[location]:
-                if len(invalid_paths[location][file_]) == 1:
-                    full_path = invalid_paths[location][file_][0]
-                    invalid_paths[location][file_] = (full_path, None)
-        except AttributeError:
-            # if bintree.invalid_paths was not initialized, this is a
-            # hard error and we can just return here
-            return {}, bin_dbapi.bintree.invalids
+        debuginfo_path = os.path.join(PACKDEBUG_PATH, cp, debuginfo_tarball)
+        if not os.path.exists(debuginfo_path):
+            return None
+        return debuginfo_path
 
-    return dead_binpkgs, invalid_paths
+
+    def findPackages(
+        self,
+        options: dict[str, bool],
+        exclude: Optional[dict] = None,
+        destructive: bool = False,
+        time_limit: Optional[int] = 0,
+        package_names: Optional[bool] = False,
+        pkgdir: str = None,
+        port_dbapi=portage.db[portage.root]["porttree"].dbapi,
+        var_dbapi=portage.db[portage.root]["vartree"].dbapi,
+    ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+        """Find obsolete binary packages.
+
+        @param options: dict of options determined at runtime
+        @type  options: dict
+        @param exclude: exclusion dict (as defined in the exclude.parseExcludeFile class)
+        @type  exclude: dict, optional
+        @param destructive: binpkg is obsolete if not installed (default: `False`)
+        @type  destructive: bool, optional
+        @param time_limit: exclude binpkg if newer than time value as returned by parseTime()
+        @type  time_limit: int, optional
+        @param package_names: exclude all binpkg versions if package is installed
+                                                  (used with `destructive=True`) (default: `False`)
+        @type  package_names: bool, optional
+        @param pkgdir: path to the binpkg cache (PKGDIR)
+        @type  pkgdir: str
+        @param port_dbapi: defaults to portage.db[portage.root]["porttree"].dbapi
+                                           Can be overridden for tests.
+        @param  var_dbapi: defaults to portage.db[portage.root]["vartree"].dbapi
+                                           Can be overridden for tests.
+
+        @return binary packages to remove. e.g. {'cat/pkg-ver': [filepath]}, invalid_paths
+        @rtype: dict, dict
+        """
+        if exclude is None:
+            exclude = {}
+
+        # Access test, os.walk does not error for "no read permission"
+        try:
+            test = os.listdir(pkgdir)
+            del test
+        except OSError as er:
+            if options["ignore-failure"]:
+                exit(0)
+            print(pp.error("Error accessing PKGDIR."), file=sys.stderr)
+            print(
+                pp.error("(Check your make.conf file and environment)."),
+                file=sys.stderr,
+            )
+            print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+            exit(1)
+
+        libc_deps = find_libc_deps(var_dbapi, False)
+
+        # Create a dictionary of all installed packages
+        if destructive and package_names:
+            installed = dict.fromkeys(var_dbapi.cp_all())
+        else:
+            installed = {}
+
+        # Dictionary of binary packages to clean. Organized as
+        # { location -> { cpv~build-id -> (binpkg, debugpack) } }
+        dead_binpkgs: dict[str, dict[str, tuple[str, str | None]]] = {}
+        keep_binpkgs = {}
+
+        def mk_binpkg_key(cpv):
+            if cpv.build_id is None:
+                return str(cpv)
+            return f"{cpv}~{cpv.build_id}"
+
+        # FEATURES=pkgdir-index-trusted is now on by default which makes Portage's
+        # invalids inaccessible
+        settings = var_dbapi.settings
+
+        # Load binrepos.conf if possible, get all cache locations
+        binrepos_conf_path = os.path.join(
+            settings["PORTAGE_CONFIGROOT"], portage.const.BINREPOS_CONF_FILE
+        )
+        binrepos_conf = BinRepoConfigLoader((binrepos_conf_path,), settings)
+        locations = {pkgdir}
+        if binrepos_conf:
+            # check for additional cache locations
+            for v in binrepos_conf.values():
+                if v.location:
+                    locations.add(v.location)
+
+        invalid_paths = {}
+        for location in locations:
+            # Initialize bintree with location
+            bin_dbapi = portage.binarytree(
+                pkgdir=location, settings=self.settings
+            ).dbapi
+            populate_kwargs = {}
+            if "invalid_errors" in signature(bin_dbapi.bintree.populate).parameters:
+                populate_kwargs["invalid_errors"] = False
+            if "force_reindex" in signature(bin_dbapi.bintree.populate).parameters:
+                bin_dbapi.bintree.populate(force_reindex=True, **populate_kwargs)
+            for cpv in bin_dbapi.cpv_all():
+                cp = portage.cpv_getkey(cpv)
+                binpkg_key = mk_binpkg_key(cpv)
+
+                # Exclude per --exclude-file=...
+                if exclDictMatchCP(exclude, cp):
+                    continue
+
+                # Exclude if binpkg is newer than --time-limit=...
+                if time_limit:
+                    mtime = int(bin_dbapi.aux_get(cpv, ["_mtime_"])[0])
+                    if mtime >= time_limit:
+                        continue
+
+                # Exclude if binpkg has exact same USEs
+                if not destructive and options["unique-use"]:
+                    keys = ("EAPI", "USE")
+                    binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
+                    cpv_key = f"{cpv}_{'_'.join(binpkg_metadata[key] for key in keys)}"
+                    if cpv_key in keep_binpkgs:
+                        old_cpv = keep_binpkgs[cpv_key]
+                        # compare BUILD_TIME, keep the new one
+                        old_time = int(bin_dbapi.aux_get(old_cpv, ["BUILD_TIME"])[0])
+                        new_time = int(bin_dbapi.aux_get(cpv, ["BUILD_TIME"])[0])
+                        drop_cpv = old_cpv if new_time >= old_time else cpv
+
+                        binpkg_key = mk_binpkg_key(drop_cpv)
+                        binpkg_path = bin_dbapi.bintree.getname(drop_cpv)
+                        debuginfo_path = self._find_debuginfo_tarball(drop_cpv, cp)
+                        dead_binpkgs.setdefault(location, {})[binpkg_key] = (
+                            binpkg_path,
+                            debuginfo_path,
+                        )
+
+                        if new_time < old_time:
+                            continue
+                    keep_binpkgs[cpv_key] = cpv
+
+                # Exclude if binpkg exists in the porttree and not --deep
+                if not destructive and port_dbapi.cpv_exists(cpv):
+                    if not options["changed-deps"]:
+                        continue
+
+                    dep_keys = ("RDEPEND", "PDEPEND")
+                    keys = ("EAPI", "USE") + dep_keys
+                    binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
+                    ebuild_metadata = dict(
+                        zip(keys, self.port_dbapi.aux_get(cpv, keys))
+                    )
+
+                    deps_binpkg = " ".join(binpkg_metadata[key] for key in dep_keys)
+                    deps_ebuild = " ".join(ebuild_metadata[key] for key in dep_keys)
+                    if self._deps_equal(
+                        deps_binpkg,
+                        binpkg_metadata["EAPI"],
+                        deps_ebuild,
+                        ebuild_metadata["EAPI"],
+                        libc_deps,
+                        frozenset(binpkg_metadata["USE"].split()),
+                        cpv,
+                    ):
+                        continue
+
+                if destructive and var_dbapi.cpv_exists(cpv):
+                    # Exclude if an instance of the package is installed due to
+                    # the --package-names option.
+                    if cp in installed and port_dbapi.cpv_exists(cpv):
+                        continue
+
+                    # Exclude if BUILD_TIME of binpkg is same as vartree
+                    buildtime = var_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]
+                    if buildtime == bin_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]:
+                        continue
+
+                if not destructive and options["unique-use"]:
+                    del keep_binpkgs[cpv_key]
+
+                binpkg_path = bin_dbapi.bintree.getname(cpv)
+                debuginfo_path = self._find_debuginfo_tarball(cpv, cp)
+                dead_binpkgs.setdefault(location, {})[binpkg_key] = (
+                    binpkg_path,
+                    debuginfo_path,
+                )
+
+            try:
+                invalid_paths[location] = bin_dbapi.bintree.invalid_paths
+                # A little dirty, but it makes the structure of
+                # invalid_paths match the structure of dead_binpkgs.
+                for file_ in invalid_paths[location]:
+                    if len(invalid_paths[location][file_]) == 1:
+                        full_path = invalid_paths[location][file_][0]
+                        invalid_paths[location][file_] = (full_path, None)
+            except AttributeError:
+                # if bintree.invalid_paths was not initialized, this is a
+                # hard error and we can just return here
+                return {}, bin_dbapi.bintree.invalids
+
+        return dead_binpkgs, invalid_paths
 
 
 # vim: set ts=4 sw=4 tw=79:
